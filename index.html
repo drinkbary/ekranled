@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kalkulator ekranu LED Drinkbary.PL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #eee;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #222;
+            border: 1px solid #555;
+            border-radius: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #444;
+            color: white;
+            width: calc(100% - 22px);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0055bb;
+        }
+
+        #results p {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kalkulator ekranu LED Drinkbary.PL</h1>
+        <div class="input-group">
+            <label for="simpleModules">Liczba modułów prostych:</label>
+            <input type="number" id="simpleModules" min="0" required inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <div class="input-group">
+            <label for="cornerModules">Liczba modułów narożnych:</label>
+            <input type="number" id="cornerModules" min="0" required inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <button onclick="calculate()">Oblicz</button>
+        <button id="copyButton" onclick="copyToClipboard()" style="display: none; background-color: #4CAF50; margin-top: 10px;">Skopiuj rozdzielczość</button>
+        <button onclick="resetForm()" style="background-color: #cc0000; margin-top: 10px;">Resetuj</button>
+        <div id="results">
+            <p id="totalResolution">Całkowita rozdzielczość: -</p>
+            <p id="totalCards">Suma kart przechwytujących: -</p>
+            <p id="controllerRequirement">Wymagane kontrolery: -</p>
+            <p id="computerRequirement">Wymagane komputery: -</p>
+        </div>
+    </div>
+    <script>
+        function calculate() {
+            let simpleModules = parseInt(document.getElementById('simpleModules').value) || 0;
+            let cornerModules = parseInt(document.getElementById('cornerModules').value) || 0;
+    
+            simpleModules = Math.max(0, simpleModules);
+            cornerModules = Math.max(0, cornerModules);
+    
+            if (simpleModules === 0 && cornerModules === 0) {
+                document.getElementById('totalResolution').textContent = 'Proszę wprowadzić co najmniej jeden moduł.';
+                document.getElementById('totalCards').textContent = '';
+                document.getElementById('controllerRequirement').textContent = '';
+                document.getElementById('computerRequirement').textContent = '';
+                document.getElementById('copyButton').style.display = 'none';
+            } else {
+                const simpleWidth = 512;
+                const cornerWidth = 768;
+                const height = 384;
+                const cardsPerSimple = 4;
+                const cardsPerCorner = 6;
+    
+                const totalCards = simpleModules * cardsPerSimple + cornerModules * cardsPerCorner;
+                const totalWidth = simpleModules * simpleWidth + cornerModules * cornerWidth;
+    
+                document.getElementById('totalResolution').textContent = `Całkowita rozdzielczość: ${totalWidth}px x ${height}px`;
+                document.getElementById('totalCards').textContent = `Suma kart przechwytujących: ${totalCards}`;
+    
+                let controllersNeeded = determineControllers(totalCards);
+                document.getElementById('controllerRequirement').textContent = `Wymagane kontrolery: ${controllersNeeded}`;
+    
+                let computersNeeded = calculateComputersNeeded(controllersNeeded);
+                document.getElementById('computerRequirement').textContent = computersNeeded > 0 ? `Wymagane komputery: ${computersNeeded}` : 'Nie wymaga dodatkowego komputera';
+                document.getElementById('copyButton').style.display = 'block';
+            }
+        }
+    
+        function determineControllers(cards) {
+            const maxCardsPerTB50 = 28;
+            if (cards <= 14) {
+                return '1x TB2';
+            } else if (cards <= 28) {
+                return '1x TB50';
+            } else {
+                const numberOfTB50 = Math.ceil(cards / 28);
+                return `${numberOfTB50}x TB50`;
+            }
+        }
+    
+        function calculateComputersNeeded(controllersInfo) {
+            const [quantity, type] = controllersInfo.split('x');
+            const trimmedQuantity = parseInt(quantity.trim());
+            return trimmedQuantity <= 1 ? 0 : Math.ceil(trimmedQuantity / 2);
+        }
+    
+        function copyToClipboard() {
+            const resolutionText = document.getElementById('totalResolution').textContent.replace('Całkowita rozdzielczość: ', '');
+            navigator.clipboard.writeText(resolutionText).then(() => {
+                const copyButton = document.getElementById('copyButton');
+                const originalText = copyButton.textContent;
+                copyButton.textContent = 'Skopiowano';
+                setTimeout(() => copyButton.textContent = originalText, 2000); // Reset the button text after 2 seconds
+            }).catch(err => {
+                console.error('Nie udało się skopiować tekstu: ', err);
+            });
+        }
+    
+        function resetForm() {
+            document.getElementById('simpleModules').value = '';
+            document.getElementById('cornerModules').value = '';
+            document.getElementById('totalResolution').textContent = 'Całkowita rozdzielczość: -';
+            document.getElementById('totalCards').textContent = 'Suma kart przechwytujących: -';
+            document.getElementById('controllerRequirement').textContent = 'Wymagane kontrolery: -';
+            document.getElementById('computerRequirement').textContent = 'Wymagane komputery: -';
+            document.getElementById('copyButton').style.display = 'none';
+            document.getElementById('copyButton').textContent = 'Skopiuj rozdzielczość'; // Reset text of the copy button if it was changed
+        }
+
+    </script>
+</body>
+</html>
