@@ -70,8 +70,7 @@
         <div id="results">
             <p id="totalResolution">Całkowita rozdzielczość: -</p>
             <p id="totalCards">Suma kart przechwytujących: -</p>
-            <p id="controllerRequirement">Wymagane kontrolery: -</p>
-            <p id="computerRequirement">Wymagane komputery: -</p>
+            <p id="controllerRequirement">Wymagany sprzęt: -</p>
         </div>
     </div>
     <script>
@@ -102,30 +101,26 @@
                 document.getElementById('totalCards').textContent = `Suma kart przechwytujących: ${totalCards}`;
     
                 let controllersNeeded = determineControllers(totalCards);
-                document.getElementById('controllerRequirement').textContent = `Wymagane kontrolery: ${controllersNeeded}`;
+                document.getElementById('controllerRequirement').textContent = `Wymagany sprzęt: ${controllersNeeded}`;
     
-                let computersNeeded = calculateComputersNeeded(controllersNeeded);
-                document.getElementById('computerRequirement').textContent = computersNeeded > 0 ? `Wymagane komputery: ${computersNeeded}` : 'Nie wymaga dodatkowego komputera';
                 document.getElementById('copyButton').style.display = 'block';
             }
         }
     
         function determineControllers(cards) {
-            const maxCardsPerTB50 = 28;
             if (cards <= 14) {
                 return '1x TB2';
             } else if (cards <= 28) {
                 return '1x TB50';
+            } else if (cards <= 56) {
+                return '1x TB60';
+            } else if (cards <= 84) {
+                return '1 komputer i 3x TB50';
+            } else if (cards <= 112) {
+                return '1 komputer i 4x TB50';
             } else {
-                const numberOfTB50 = Math.ceil(cards / 28);
-                return `${numberOfTB50}x TB50`;
+                return 'Posiadany sprzęt nie obsłuży takiej ilości kart.';
             }
-        }
-    
-        function calculateComputersNeeded(controllersInfo) {
-            const [quantity, type] = controllersInfo.split('x');
-            const trimmedQuantity = parseInt(quantity.trim());
-            return trimmedQuantity <= 1 ? 0 : Math.ceil(trimmedQuantity / 2);
         }
     
         function copyToClipboard() {
@@ -145,8 +140,7 @@
             document.getElementById('cornerModules').value = '';
             document.getElementById('totalResolution').textContent = 'Całkowita rozdzielczość: -';
             document.getElementById('totalCards').textContent = 'Suma kart przechwytujących: -';
-            document.getElementById('controllerRequirement').textContent = 'Wymagane kontrolery: -';
-            document.getElementById('computerRequirement').textContent = 'Wymagane komputery: -';
+            document.getElementById('controllerRequirement').textContent = 'Wymagany sprzęt: -';
             document.getElementById('copyButton').style.display = 'none';
             document.getElementById('copyButton').textContent = 'Skopiuj rozdzielczość'; // Reset text of the copy button if it was changed
         }
